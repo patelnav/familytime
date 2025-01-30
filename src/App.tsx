@@ -148,7 +148,7 @@ function App() {
             </div>
             <nav className="flex items-center space-x-2" aria-label="Main navigation">
               <a 
-                href="https://github.com/yourusername/familytime.guide" 
+                href="https://github.com/patelnav/familytime" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
