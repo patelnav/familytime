@@ -137,33 +137,26 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-indigo-600" aria-hidden="true" />
-              <h1 className="text-2xl font-bold text-gray-900">Family Time Guide</h1>
-            </div>
-            <nav className="flex items-center space-x-2" aria-label="Main navigation">
-              <a 
-                href="https://github.com/patelnav/familytime" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
-                aria-label="View source code on GitHub"
-              >
-                <Github className="h-5 w-5" />
-                <span>Source</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+    <div className="min-h-screen bg-white">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Centered Title with Logo */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-2">
+            <img src="/logo.png" alt="Family Time Guide Logo" className="h-10 w-10" />
+            <h1 className="text-3xl font-bold text-teal-700">Family Time Guide</h1>
+          </div>
+          <a 
+            href="https://github.com/patelnav/familytime" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center mt-2 text-slate-600 hover:text-slate-800"
+            aria-label="View source code on GitHub"
+          >
+            <Github className="h-5 w-5 mr-1" />
+            <span>Source</span>
+          </a>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Sidebar - Input Section */}
           <div className="lg:col-span-4">
