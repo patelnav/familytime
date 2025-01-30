@@ -36,12 +36,12 @@ const InsightsSection: React.FC<InsightsSectionProps> = ({ familyData }) => {
         break;
     }
 
-    // Maternity Leave Insights
-    const maternityLeave = parseFloat(familyData.maternityLeaveDuration);
-    if (maternityLeave > 1) {
-      insights.push(`Your extended maternity leave of ${maternityLeave} years provides crucial bonding time during the early developmental stages.`);
-    } else if (maternityLeave < 1) {
-      insights.push("Consider ways to maximize bonding time during your shorter maternity leave period.");
+    // Parental Leave Insights
+    const parentalLeave = parseFloat(familyData.paternalLeaveDuration);
+    if (parentalLeave > 1) {
+      insights.push(`Your extended parental leave of ${parentalLeave} years provides crucial bonding time during the early developmental stages.`);
+    } else if (parentalLeave < 1) {
+      insights.push("Consider ways to maximize bonding time during your shorter parental leave period.");
     }
 
     // Child Age-based Insights
@@ -87,24 +87,24 @@ const InsightsSection: React.FC<InsightsSectionProps> = ({ familyData }) => {
   const insights = generateInsights();
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
+    <div className="border-2 border-slate-200 rounded-lg p-6">
       <div className="flex items-center space-x-2 mb-6">
-        <Lightbulb className="h-6 w-6 text-indigo-600" aria-hidden="true" />
+        <Lightbulb className="h-6 w-6 text-slate-600" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-gray-900">Insights & Recommendations</h2>
       </div>
 
       {insights.length > 0 ? (
-        <div className="space-y-4">
+        <ul className="space-y-4">
           {insights.map((insight, index) => (
-            <div key={index} className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-1.5 h-1.5 mt-2 rounded-full bg-indigo-600" />
+            <li key={index} className="flex space-x-3">
+              <div className="flex-shrink-0 w-1.5 h-1.5 mt-2 rounded-full bg-slate-600" />
               <p className="text-gray-700">{insight}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
-        <div className="text-center py-12 text-gray-500">
-          Enter your family information to see personalized insights
+        <div className="text-center py-12 text-gray-500 border border-slate-200 rounded-md">
+          Enter family information to see insights
         </div>
       )}
     </div>

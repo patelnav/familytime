@@ -1,6 +1,15 @@
 # Family Time Guide
 
+<div align="center">
+  <img src="logo.png" alt="Family Time Guide Logo" width="100" height="100">
+  <p><em>Visualizing the precious moments spent with your children</em></p>
+</div>
+
 A tool that visualizes the time parents spend with their children throughout their parenting journey. The algorithm takes into account various real-world factors to provide a realistic estimation of daily active and passive time spent with children.
+
+## Branding
+
+The Family Time Guide uses a simple, clean design featuring a book with an information icon, symbolizing both the educational journey of parenting and the guidance this tool provides. The mint green color scheme (#4FD1C5) represents growth, harmony, and the fresh perspective this tool brings to understanding family time.
 
 ## How It Works
 

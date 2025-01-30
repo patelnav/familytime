@@ -61,8 +61,8 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           const [min] = d.weekdayHours.split('–');
           return parseFloat(min);
         }),
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        borderColor: 'rgb(71, 85, 105)',
+        backgroundColor: 'rgba(71, 85, 105, 0.5)',
         tension: 0.4,
       },
       {
@@ -71,8 +71,8 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           const [min] = d.weekendHours.split('–');
           return parseFloat(min);
         }),
-        borderColor: 'rgb(147, 197, 253)',
-        backgroundColor: 'rgba(147, 197, 253, 0.5)',
+        borderColor: 'rgb(148, 163, 184)',
+        backgroundColor: 'rgba(148, 163, 184, 0.5)',
         tension: 0.4,
       },
     ],
@@ -131,9 +131,9 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="border-2 border-slate-200 rounded-lg p-6">
       <div className="flex items-center space-x-2 mb-6">
-        <BarChart3 className="h-6 w-6 text-indigo-600" aria-hidden="true" />
+        <BarChart3 className="h-6 w-6 text-slate-600" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-gray-900">Time Visualization</h2>
       </div>
 
@@ -142,7 +142,7 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           <Line data={chartData} options={chartOptions} />
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-500 border border-slate-200 rounded-md">
           Enter your information to see the time visualization
         </div>
       )}
