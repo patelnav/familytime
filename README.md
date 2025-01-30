@@ -18,91 +18,94 @@ The Family Time Guide uses a simple, clean design featuring a book with an infor
 The algorithm considers several key factors that influence the time spent with children:
 
 #### Parent Variables
-- **Work Schedule**: Different work arrangements (full-time, part-time, remote, flexible)
-- **Commute Time**: Varies by work type (0-1.5 hours per day)
-- **Parental Leave**: Initial period of intensive care
-- **Essential Activities**: Time for parent's basic needs (1.5 hours daily)
+- **Work Hours**: Varies by parent type
+  - Stay at Home: 0 hours
+  - Full Time Work: 9 hours (including lunch)
+  - Part Time Work: 5 hours
+  - Remote Full Time: 8 hours
+  - Remote Part Time: 4 hours
+  - Flexible: 6 hours
+- **Commute Time**: Varies by work type
+  - Stay at Home: 0 hours
+  - Full Time Work: 1.5 hours
+  - Part Time Work: 1.5 hours
+  - Remote Work: 0 hours
+  - Flexible: 0.5 hours
+- **Parental Leave**: Configurable duration (default: 1 year)
+- **Essential Activities**: 1.5 hours daily for basic needs
 
 #### Child Variables
-- **Age-Based Sleep Needs**: From 16 hours (newborn) to 8 hours (teenager)
-- **Developmental Stages**: 
-  - Infancy (0-1 years)
-  - Toddler (2-4 years)
-  - Early Childhood (5-7 years)
-  - Middle Childhood (8-12 years)
-  - Adolescence (13-17 years)
+- **Age-Based Sleep Needs**:
+  - Newborn: 16 hours
+  - Age 1: 14 hours
+  - Ages 2-4: 12 hours
+  - Ages 5-6: 11 hours
+  - Ages 7-12: 10 hours
+  - Ages 13-17: 9 hours
+  - Age 18+: 8 hours
 
-#### Care Arrangements
-- **Daycare**: Typical 8am-5pm schedule
-- **School Stages**: From preschool through high school
-- **Multiple Children**: Accounts for divided attention and overlapping time
+#### Developmental Stages
+- **Infancy** (0-1 years)
+- **Toddler** (2-4 years)
+- **Early Childhood** (5-7 years)
+- **Middle Childhood** (8-12 years)
+- **Adolescence** (13-17 years)
+- **Adulthood** (18+ years)
+
+#### Schooling Stages
+- **PreSchool** (≤3 years)
+- **Kindergarten** (4-5 years)
+- **Elementary** (6-11 years)
+- **Middle School** (12-14 years)
+- **High School** (15-17 years)
+- **Post High School** (18+ years)
 
 ### Time Categories
 
 The algorithm calculates two types of time:
 
 1. **Active Hours**: Direct interaction and focused attention
-   - Higher during parental leave (up to 14 hours)
-   - Varies by parent type (e.g., stay-at-home vs. full-time work)
-   - Adjusted for daycare/school hours
-   - Considers overlapping time with multiple children
+   - **During Parental Leave**: Maximum child wake hours minus essential activities
+   - **Infants/Toddlers without Daycare**: All available parent hours minus essential activities
+   - **With Daycare**:
+     - Infants: 5-6 hours (morning/evening routines)
+     - Toddlers: 4-5 hours
+     - Older Children: 3-4 hours
+   - **Base Active Hours by Age Group**:
+     - Infancy: Up to 12 hours
+     - Toddler: Up to 10 hours
+     - Early Childhood: 6 hours
+     - Middle Childhood: 4 hours
+     - Adolescence: 3 hours
+     - Adulthood: 1 hour
 
-2. **Weekend Hours**: Different calculation for weekend time
-   - More available hours due to no work
-   - Varies by child's age and schooling stage
-   - Accounts for group activities and shared time
+2. **Weekend Hours**: Based on schooling stage
+   - PreSchool: 6 hours
+   - Kindergarten: 5 hours
+   - Elementary: 4 hours
+   - Middle School: 3 hours
+   - High School: 2.5 hours
+   - Post High School: 1 hour
 
 ### Multiple Children Adjustments
 
-The algorithm uses a sophisticated approach to handle time with multiple children:
-
-1. **Base Time Calculation**:
+1. **Weekday Time**:
    - First child receives full calculated hours
-   - Additional children don't simply add their full hours (avoiding unrealistic totals)
+   - Additional young children (infants/toddlers): 30% more time each
+   - Additional older children: 20% more time each
+   - Minimum multiplier: 0.4 (ensures minimum attention)
 
-2. **Overlapping Time**:
-   - Recognizes that many activities can be done with multiple children simultaneously
-   - Base time is set by the child requiring the most attention
-   - Additional children add incremental time rather than full hours
+2. **Weekend Time**:
+   - First child sets base weekend hours
+   - Each additional child adds 25% more time
+   - Accounts for shared activities
 
-3. **Age-Based Factors**:
-   - Young children (infants/toddlers):
-     - First child sets the base time
-     - Each additional young child adds 30% more time
-   - Older children:
-     - First child sets the base time
-     - Each additional older child adds 20% more time
+### Passive Time Calculation
 
-4. **Weekend Adjustments**:
-   - Base weekend time set by the most time-intensive child
-   - Additional children add 25% more time each
-   - Accounts for group activities and shared experiences
+- **Infancy**: Up to 30% of sleep time (max 6 hours)
+- **Toddler**: Up to 20% of sleep time (max 3 hours)
+- **Early Childhood**: 1.5 hours
+- **Middle Childhood**: 1 hour
+- **Adolescence**: 0.5 hours
 
-### Daily Time Constraints
-
-The calculations respect realistic daily constraints:
-- 24-hour day
-- Parent's sleep (8 hours)
-- Work hours (varies by parent type)
-- Commute time (varies by work arrangement)
-- Essential activities (1.5 hours)
-
-### Special Considerations
-
-1. **Daycare Impact**:
-   - Morning routine (1.5-2 hours)
-   - Evening routine (3-4 hours)
-   - Varies by child's age and parent type
-
-2. **Age-Based Attention**:
-   - Infants: Maximum available wake hours
-   - Toddlers: High attention needs
-   - School-age: Balanced with educational activities
-   - Teenagers: More independent time
-
-3. **Passive Time**:
-   - Night feedings for infants (up to 30% of sleep time)
-   - Gradual reduction as children age
-   - Background presence and supervision
-
-The visualization shows both weekday and weekend hours over time, providing a comprehensive view of the parenting journey from pre-birth planning through the children's journey to adulthood. 
+The visualization shows both weekday and weekend hours over time, with ranges to account for variability in daily schedules. The timeline spans from 2 years before the first child's birth through 20 years after the last child's birth, providing a comprehensive view of the parenting journey. 
