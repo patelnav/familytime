@@ -138,7 +138,7 @@ const getAvailableHours = (parentType: ParentType, childAges: number[]): number 
 };
 
 // Base hours by age group (before work/daycare adjustments)
-const baseActiveHours: { [key in ChildAgeGroup]: number } = {
+export const baseActiveHours: { [key in ChildAgeGroup]: number } = {
   [ChildAgeGroup.NotBornYet]: 0,
   [ChildAgeGroup.Infancy]: 12,     // Peak hours for infant care
   [ChildAgeGroup.Toddler]: 11,     // Slightly less for toddlers
