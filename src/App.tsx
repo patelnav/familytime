@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Clock, Github } from 'lucide-react';
+import { Github } from 'lucide-react';
 import InputSection from './components/InputSection';
 import VisualizationSection from './components/VisualizationSection';
 import { ParentType } from './utils/timeCalculations';
 
 export interface FamilyData {
   parentBirthYear: string;
-  numberOfChildren: string;
   children: {
+    name: string;
     birthYear: string;
     daycareUsed: boolean;
     daycareStartAge?: string;
@@ -23,7 +23,6 @@ const encodeFamilyData = (data: FamilyData): string => {
   
   // Encode basic fields
   if (data.parentBirthYear) params.set('parentBirthYear', data.parentBirthYear);
-  if (data.numberOfChildren) params.set('numberOfChildren', data.numberOfChildren);
   if (data.parentType) params.set('parentType', data.parentType);
   if (data.paternalLeaveDuration) params.set('paternalLeaveDuration', data.paternalLeaveDuration);
   
@@ -46,14 +45,13 @@ const decodeFamilyData = (hash: string): FamilyData | null => {
     // Initialize with current data structure to prevent resets
     const data: FamilyData = {
       parentBirthYear: params.get('parentBirthYear') || '',
-      numberOfChildren: params.get('numberOfChildren') || '',
+      children: [],
       parentType: (params.get('parentType') as ParentType) || ParentType.FullTimeWork,
       paternalLeaveDuration: params.get('paternalLeaveDuration') || '1',
-      children: []
     };
     
     // Get number of children from URL or calculate from child parameters
-    const numChildren = parseInt(data.numberOfChildren) || 0;
+    const numChildren = parseInt(data.children.length.toString()) || 0;
     
     // Decode children data
     for (let i = 0; i < numChildren; i++) {
@@ -63,6 +61,7 @@ const decodeFamilyData = (hash: string): FamilyData | null => {
       const daycareEndAge = params.get(`child${i}DaycareEnd`) || '5';
       
       data.children.push({
+        name: '',
         birthYear,
         daycareUsed,
         daycareStartAge,
@@ -80,7 +79,6 @@ const decodeFamilyData = (hash: string): FamilyData | null => {
 // Default family data
 const defaultFamilyData: FamilyData = {
   parentBirthYear: '',
-  numberOfChildren: '',
   children: [],
   parentType: ParentType.FullTimeWork,
   paternalLeaveDuration: '1',

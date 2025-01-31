@@ -213,7 +213,7 @@ export const getPassiveHoursPerChild = (childAge: number): number => {
 
 // Calculate time spent with children
 export const calculateTimeSpent = (
-  _parentBirthYear: number, // Prefix with underscore to indicate it's intentionally unused
+  _parentBirthYear: number,
   children: Child[],
   parentType: ParentType,
   paternalLeaveDuration: number = PATERNAL_LEAVE_DURATION_DEFAULT
@@ -227,137 +227,55 @@ export const calculateTimeSpent = (
   const endYear = lastChildBirthYear + 20;
 
   for (let year = startYear; year <= endYear; year++) {
-    // Sort children by age for that year (youngest first)
-    // This helps with applying the multiple children reduction correctly
-    const sortedChildren = [...children].sort((a, b) => 
-      (year - a.birthYear) - (year - b.birthYear)
-    );
+    let totalWeekdayHours = 0;
+    let totalWeekendHours = 0;
+    let maxSingleChildWeekday = 0;
+    let maxSingleChildWeekend = 0;
 
-    // Track maximum hours for each time period to handle overlap
-    let maxWeekdayHoursMin = 0;
-    let maxWeekdayHoursMax = 0;
-    let maxWeekendHoursMin = 0;
-    let maxWeekendHoursMax = 0;
-
-    // Track additional time needed for each extra child
-    let additionalWeekdayHoursMin = 0;
-    let additionalWeekdayHoursMax = 0;
-    let additionalWeekendHoursMin = 0;
-    let additionalWeekendHoursMax = 0;
-
-    sortedChildren.forEach((child, index) => {
+    // Calculate hours for each child
+    children.forEach((child, index) => {
       const childAge = year - child.birthYear;
       if (childAge < 0) return;
 
-      const isParentalLeave = childAge < paternalLeaveDuration;
-      let isDaycare = false;
-      
-      if (child.daycareUsed && !isParentalLeave) {
-        const daycareStartAge = child.daycareStartAge ?? DAYCARE_DEFAULT_START_AGE;
-        const daycareEndAge = child.daycareEndAge ?? DAYCARE_DEFAULT_END_AGE;
-        isDaycare = childAge >= daycareStartAge && childAge < daycareEndAge;
-      }
+      // Check if child is in daycare for this year
+      const isDaycare = child.daycareUsed &&
+        childAge >= (child.daycareStartAge ?? DAYCARE_DEFAULT_START_AGE) &&
+        childAge <= (child.daycareEndAge ?? DAYCARE_DEFAULT_END_AGE);
+
+      // Check if parent is on parental leave for this child
+      const isParentalLeave = childAge >= 0 && childAge < paternalLeaveDuration;
 
       // Calculate base hours for this child
-      let childWeekdayHoursMin = 0;
-      let childWeekdayHoursMax = 0;
-
-      if (isParentalLeave) {
-        const baseParentalHours = 14;
-        // First child gets full hours, additional children add 30% more
-        if (index === 0) {
-          childWeekdayHoursMin = baseParentalHours;
-          childWeekdayHoursMax = baseParentalHours + 2;
-        } else {
-          childWeekdayHoursMin = baseParentalHours * 0.3;
-          childWeekdayHoursMax = (baseParentalHours + 2) * 0.3;
-        }
-      } else {
-        const baseHours = getActiveHoursPerChild(childAge, parentType, false, isDaycare, index);
-        if (index === 0) {
-          childWeekdayHoursMin = baseHours;
-          childWeekdayHoursMax = baseHours + 1;
-        } else {
-          // Additional children require 20-30% more time depending on age
-          const ageGroup = getChildAgeGroup(childAge);
-          const additionalTimeFactor = ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler
-            ? 0.3  // 30% more time for young children
-            : 0.2; // 20% more time for older children
-          childWeekdayHoursMin = baseHours * additionalTimeFactor;
-          childWeekdayHoursMax = (baseHours + 1) * additionalTimeFactor;
-        }
-      }
-
-      // Weekend hours calculation
-      const schoolingStage = getSchoolingStage(childAge);
-      let weekendActiveHours = 0;
-      switch (schoolingStage) {
-        case SchoolingStage.PreSchool:
-          weekendActiveHours = 6;
-          break;
-        case SchoolingStage.Kindergarten:
-          weekendActiveHours = 5;
-          break;
-        case SchoolingStage.Elementary:
-          weekendActiveHours = 4;
-          break;
-        case SchoolingStage.MiddleSchool:
-          weekendActiveHours = 3;
-          break;
-        case SchoolingStage.HighSchool:
-          weekendActiveHours = 2.5;
-          break;
-        case SchoolingStage.PostHighSchool:
-          weekendActiveHours = 1;
-          break;
-      }
-
+      const baseHours = getActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare);
       const passiveHours = getPassiveHoursPerChild(childAge);
-      const totalWeekendHours = weekendActiveHours + passiveHours;
 
-      // Calculate weekend hours with overlap consideration
-      let childWeekendHoursMin;
-      let childWeekendHoursMax;
-      if (index === 0) {
-        childWeekendHoursMin = totalWeekendHours;
-        childWeekendHoursMax = totalWeekendHours + 1;
-      } else {
-        // Additional children add 25% more weekend time
-        childWeekendHoursMin = totalWeekendHours * 0.25;
-        childWeekendHoursMax = (totalWeekendHours + 1) * 0.25;
-      }
+      // For weekdays (reduced by work)
+      const weekdayHours = baseHours + (passiveHours * 0.7);
+      maxSingleChildWeekday = Math.max(maxSingleChildWeekday, weekdayHours);
+      
+      // For weekends (full attention possible)
+      const weekendHours = Math.min(baseHours * 1.2, HOURS_IN_DAY - PARENT_SLEEP_HOURS) + (passiveHours * 0.3);
+      maxSingleChildWeekend = Math.max(maxSingleChildWeekend, weekendHours);
 
-      // Update maximum and additional hours
-      if (index === 0) {
-        maxWeekdayHoursMin = childWeekdayHoursMin;
-        maxWeekdayHoursMax = childWeekdayHoursMax;
-        maxWeekendHoursMin = childWeekendHoursMin;
-        maxWeekendHoursMax = childWeekendHoursMax;
+      // Add additional hours for overlapping time, but with diminishing returns
+      if (index > 0) {
+        const overlapFactor = Math.max(0.3, 1 / (index + 1));
+        totalWeekdayHours += weekdayHours * overlapFactor;
+        totalWeekendHours += weekendHours * overlapFactor;
       } else {
-        additionalWeekdayHoursMin += childWeekdayHoursMin;
-        additionalWeekdayHoursMax += childWeekdayHoursMax;
-        additionalWeekendHoursMin += childWeekendHoursMin;
-        additionalWeekendHoursMax += childWeekendHoursMax;
+        totalWeekdayHours = weekdayHours;
+        totalWeekendHours = weekendHours;
       }
     });
 
-    // Calculate total hours with overlap consideration
-    const totalWeekdayHoursMin = maxWeekdayHoursMin + additionalWeekdayHoursMin;
-    const totalWeekdayHoursMax = maxWeekdayHoursMax + additionalWeekdayHoursMax;
-    const totalWeekendHoursMin = maxWeekendHoursMin + additionalWeekendHoursMin;
-    const totalWeekendHoursMax = maxWeekendHoursMax + additionalWeekendHoursMax;
-
-    const availableHours = HOURS_IN_DAY - PARENT_SLEEP_HOURS;
-
-    const cappedWeekdayHoursMin = Math.min(totalWeekdayHoursMin, availableHours);
-    const cappedWeekdayHoursMax = Math.min(totalWeekdayHoursMax, availableHours);
-    const cappedWeekendHoursMin = Math.min(totalWeekendHoursMin, availableHours);
-    const cappedWeekendHoursMax = Math.min(totalWeekendHoursMax, availableHours);
+    // Format the hours ranges
+    const weekdayHours = `${totalWeekdayHours.toFixed(1)}`;
+    const weekendHours = `${totalWeekendHours.toFixed(1)}`;
 
     data.push({
       year,
-      weekdayHours: `${cappedWeekdayHoursMin.toFixed(1)}–${cappedWeekdayHoursMax.toFixed(1)} hours`,
-      weekendHours: `${cappedWeekendHoursMin.toFixed(1)}–${cappedWeekendHoursMax.toFixed(1)} hours`,
+      weekdayHours,
+      weekendHours,
     });
   }
 
