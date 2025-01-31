@@ -123,8 +123,8 @@ function App() {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden bg-white">
-      <main className="h-full max-w-[98%] mx-auto px-2 sm:px-3 py-3">
+    <div className="min-h-screen bg-white">
+      <main className="max-w-[98%] mx-auto px-2 sm:px-3 py-3">
         {/* Centered Title with Logo */}
         <div className="text-center mb-2">
           <div className="flex items-center justify-center space-x-2">
@@ -143,14 +143,14 @@ function App() {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 h-[calc(100vh-4rem)]">
-          {/* Left Sidebar - Input Section */}
-          <div className="lg:col-span-3 overflow-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          {/* Input Section */}
+          <div className="lg:col-span-3 lg:h-[calc(100vh-5rem)] lg:overflow-auto">
             <InputSection familyData={familyData} setFamilyData={setFamilyData} />
           </div>
 
-          {/* Main Content Area - Visualization */}
-          <div className="lg:col-span-9 overflow-hidden">
+          {/* Visualization Section */}
+          <div className="lg:col-span-9 h-[500px] lg:h-[calc(100vh-5rem)]">
             <VisualizationSection familyData={familyData} />
           </div>
         </div>

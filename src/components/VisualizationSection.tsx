@@ -274,7 +274,7 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           );
         })}
         {/* Legend */}
-        <div className="flex items-center justify-end space-x-4 text-xs pt-1">
+        <div className="flex flex-wrap gap-2 text-xs pt-1">
           {Object.entries(stageColors).map(([stage, color]) => (
             stage !== ChildAgeGroup.NotBornYet && (
               <div key={stage} className="flex items-center">
@@ -292,21 +292,23 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
   };
 
   return (
-    <div className="h-full border-2 border-slate-200 rounded-lg p-3">
-      <div className="flex items-center space-x-2 mb-2">
+    <div className="h-full border-2 border-slate-200 rounded-lg p-3 flex flex-col">
+      <div className="flex items-center space-x-2 mb-2 flex-shrink-0">
         <BarChart3 className="h-4 w-4 text-slate-600" aria-hidden="true" />
         <h2 className="text-base font-semibold text-gray-900">Time Visualization</h2>
       </div>
 
       {timeData.length > 0 ? (
-        <div className="h-[calc(100%-2rem)]">
-          {renderLifeStages()}
-          <div className="h-[calc(100%-8rem)]">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="flex-shrink-0">
+            {renderLifeStages()}
+          </div>
+          <div className="flex-1 min-h-0">
             <Line data={chartData} options={chartOptions} />
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500 border border-slate-200 rounded-md">
+        <div className="flex-1 flex items-center justify-center text-center text-gray-500 border border-slate-200 rounded-md">
           Enter your information to see the time visualization
         </div>
       )}
