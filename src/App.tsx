@@ -28,6 +28,7 @@ const encodeFamilyData = (data: FamilyData): string => {
   
   // Encode children data
   data.children.forEach((child, index) => {
+    if (child.name) params.set(`child${index}Name`, child.name);
     if (child.birthYear) params.set(`child${index}BirthYear`, child.birthYear);
     params.set(`child${index}Daycare`, child.daycareUsed.toString());
     if (child.daycareStartAge) params.set(`child${index}DaycareStart`, child.daycareStartAge);
@@ -38,42 +39,29 @@ const encodeFamilyData = (data: FamilyData): string => {
 };
 
 // Function to decode family data from URL hash
-const decodeFamilyData = (hash: string): FamilyData | null => {
-  try {
-    const params = new URLSearchParams(hash.replace('#', ''));
-    
-    // Initialize with current data structure to prevent resets
-    const data: FamilyData = {
-      parentBirthYear: params.get('parentBirthYear') || '',
-      children: [],
-      parentType: (params.get('parentType') as ParentType) || ParentType.FullTimeWork,
-      paternalLeaveDuration: params.get('paternalLeaveDuration') || '1',
-    };
-    
-    // Get number of children from URL or calculate from child parameters
-    const numChildren = parseInt(data.children.length.toString()) || 0;
-    
-    // Decode children data
-    for (let i = 0; i < numChildren; i++) {
-      const birthYear = params.get(`child${i}BirthYear`) || '';
-      const daycareUsed = params.get(`child${i}Daycare`) === 'true';
-      const daycareStartAge = params.get(`child${i}DaycareStart`) || '1';
-      const daycareEndAge = params.get(`child${i}DaycareEnd`) || '5';
-      
-      data.children.push({
-        name: '',
-        birthYear,
-        daycareUsed,
-        daycareStartAge,
-        daycareEndAge
-      });
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error decoding family data:', error);
-    return null;
+const decodeFamilyData = (hash: string): FamilyData => {
+  const params = new URLSearchParams(hash.replace('#', ''));
+  const data: FamilyData = {
+    parentBirthYear: params.get('parentBirthYear') || '',
+    parentType: (params.get('parentType') as ParentType) || ParentType.FullTimeWork,
+    paternalLeaveDuration: params.get('paternalLeaveDuration') || '1',
+    children: []
+  };
+
+  // Find all children by looking for birthYear parameters
+  let index = 0;
+  while (params.has(`child${index}BirthYear`)) {
+    data.children.push({
+      name: params.get(`child${index}Name`) || '',
+      birthYear: params.get(`child${index}BirthYear`) || '',
+      daycareUsed: params.get(`child${index}Daycare`) === 'true',
+      daycareStartAge: params.get(`child${index}DaycareStart`) || undefined,
+      daycareEndAge: params.get(`child${index}DaycareEnd`) || undefined,
+    });
+    index++;
   }
+
+  return data;
 };
 
 // Default family data
@@ -135,34 +123,34 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="h-screen overflow-hidden bg-white">
+      <main className="h-full max-w-[98%] mx-auto px-2 sm:px-3 py-3">
         {/* Centered Title with Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            <img src="/logo.png" alt="Family Time Guide Logo" className="h-10 w-10" />
-            <h1 className="text-3xl font-bold text-teal-700">Family Time Guide</h1>
+        <div className="text-center mb-2">
+          <div className="flex items-center justify-center space-x-2">
+            <img src="/logo.png" alt="Family Time Guide Logo" className="h-6 w-6" />
+            <h1 className="text-xl font-bold text-teal-700">Family Time Guide</h1>
           </div>
           <a 
             href="https://github.com/patelnav/familytime" 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="inline-flex items-center mt-2 text-slate-600 hover:text-slate-800"
+            className="inline-flex items-center text-sm text-slate-600 hover:text-slate-800"
             aria-label="View source code on GitHub"
           >
-            <Github className="h-5 w-5 mr-1" />
+            <Github className="h-3 w-3 mr-1" />
             <span>Source</span>
           </a>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 h-[calc(100vh-4rem)]">
           {/* Left Sidebar - Input Section */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3 overflow-auto">
             <InputSection familyData={familyData} setFamilyData={setFamilyData} />
           </div>
 
           {/* Main Content Area - Visualization */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-9 overflow-hidden">
             <VisualizationSection familyData={familyData} />
           </div>
         </div>

@@ -1,9 +1,29 @@
 // Constants for daily time allocation
 export const HOURS_IN_DAY = 24;
-export const PARENT_SLEEP_HOURS = 8;
+export const PARENT_SLEEP_HOURS_DEFAULT = 8;
 export const PATERNAL_LEAVE_DURATION_DEFAULT = 1;
 export const DAYCARE_DEFAULT_START_AGE = 1;
 export const DAYCARE_DEFAULT_END_AGE = 5;
+
+// Parent sleep hours based on youngest child's age
+export const PARENT_SLEEP_HOURS: { [age: number]: number } = {
+  0: 6,  // Newborn phase: heavily disrupted sleep
+  1: 6.5, // Still getting up for feedings
+  2: 7,  // Starting to get more sleep
+  3: 7.5, // Sleep improving
+  4: 8,  // Back to normal sleep
+};
+
+// Get parent sleep hours based on youngest child's age
+export const getParentSleepHours = (childAges: number[]): number => {
+  if (childAges.length === 0) return PARENT_SLEEP_HOURS_DEFAULT;
+  const youngestAge = Math.min(...childAges);
+  if (youngestAge < 0) return PARENT_SLEEP_HOURS_DEFAULT;
+  
+  // Find the closest age bracket
+  const age = Math.floor(youngestAge);
+  return PARENT_SLEEP_HOURS[age] ?? PARENT_SLEEP_HOURS_DEFAULT;
+};
 
 // Approximate sleep needs based on child's age
 export const CHILD_SLEEP_HOURS: { [age: number]: number } = {
@@ -74,11 +94,11 @@ export interface TimeSpent {
 // Function to determine the age group of a child
 export const getChildAgeGroup = (childAge: number): ChildAgeGroup => {
   if (childAge < 0) return ChildAgeGroup.NotBornYet;
-  if (childAge <= 1) return ChildAgeGroup.Infancy;
-  if (childAge <= 4) return ChildAgeGroup.Toddler;
-  if (childAge <= 7) return ChildAgeGroup.EarlyChildhood;
-  if (childAge <= 12) return ChildAgeGroup.MiddleChildhood;
-  if (childAge <= 17) return ChildAgeGroup.Adolescence;
+  if (childAge < 1) return ChildAgeGroup.Infancy;
+  if (childAge < 4) return ChildAgeGroup.Toddler;
+  if (childAge < 7) return ChildAgeGroup.EarlyChildhood;
+  if (childAge < 12) return ChildAgeGroup.MiddleChildhood;
+  if (childAge < 17) return ChildAgeGroup.Adolescence;
   return ChildAgeGroup.Adulthood;
 };
 
@@ -112,8 +132,20 @@ const COMMUTE_HOURS: { [key in ParentType]: number } = {
 };
 
 // Get available hours after work and commute
-const getAvailableHours = (parentType: ParentType): number => {
-  return HOURS_IN_DAY - PARENT_SLEEP_HOURS - WORK_HOURS[parentType] - COMMUTE_HOURS[parentType];
+const getAvailableHours = (parentType: ParentType, childAges: number[]): number => {
+  const parentSleepHours = getParentSleepHours(childAges);
+  return HOURS_IN_DAY - parentSleepHours - WORK_HOURS[parentType] - COMMUTE_HOURS[parentType];
+};
+
+// Base hours by age group (before work/daycare adjustments)
+const baseActiveHours: { [key in ChildAgeGroup]: number } = {
+  [ChildAgeGroup.NotBornYet]: 0,
+  [ChildAgeGroup.Infancy]: 12,     // Peak hours for infant care
+  [ChildAgeGroup.Toddler]: 11,     // Slightly less for toddlers
+  [ChildAgeGroup.EarlyChildhood]: 8,
+  [ChildAgeGroup.MiddleChildhood]: 6,
+  [ChildAgeGroup.Adolescence]: 4,
+  [ChildAgeGroup.Adulthood]: 2,
 };
 
 // Get active hours per child
@@ -122,11 +154,14 @@ export const getActiveHoursPerChild = (
   parentType: ParentType,
   isParentalLeave: boolean,
   isDaycare: boolean,
-  childIndex: number = 0
+  childIndex: number = 0,
+  allChildAges: number[] = [],
+  paternalLeaveDuration: number = PATERNAL_LEAVE_DURATION_DEFAULT
 ): number => {
   const ageGroup = getChildAgeGroup(childAge);
   const childSleepHours = CHILD_SLEEP_HOURS[Math.min(Math.floor(childAge), 18)];
   const childWakeHours = HOURS_IN_DAY - childSleepHours;
+  const parentSleepHours = getParentSleepHours(allChildAges);
   
   // Essential parent activities (eating, hygiene, etc.)
   const ESSENTIAL_PARENT_HOURS = 1.5;
@@ -134,48 +169,74 @@ export const getActiveHoursPerChild = (
   // During parental leave
   if (isParentalLeave) {
     // You're with the child during all their wake hours, minus essential activities
-    return Math.min(childWakeHours, HOURS_IN_DAY - PARENT_SLEEP_HOURS - ESSENTIAL_PARENT_HOURS);
-  }
-
-  // For infants and toddlers not in daycare
-  if ((ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler) && !isDaycare) {
-    const availableHours = getAvailableHours(parentType);
-    // You're with them during all available hours
-    return Math.min(childWakeHours, availableHours - ESSENTIAL_PARENT_HOURS);
-  }
-
-  // For daycare scenarios
-  if (isDaycare) {
-    const availableHours = getAvailableHours(parentType);
-    
-    if (ageGroup === ChildAgeGroup.Infancy) {
-      // Morning routine (1.5-2 hrs) + evening routine (3-4 hrs)
-      return parentType === ParentType.StayAtHome ? 6 : Math.min(5, availableHours);
-    } else if (ageGroup === ChildAgeGroup.Toddler) {
-      // Slightly less intensive routines
-      return parentType === ParentType.StayAtHome ? 5 : Math.min(4, availableHours);
-    } else {
-      // Older children
-      return parentType === ParentType.StayAtHome ? 4 : Math.min(3, availableHours);
+    const maxHours = Math.min(childWakeHours, HOURS_IN_DAY - parentSleepHours - ESSENTIAL_PARENT_HOURS);
+    // Gradually increase hours over first month
+    const monthFraction = (childAge * 12) % 1;
+    if (monthFraction < 1/12) { // First month
+      return maxHours * (0.7 + (0.3 * (monthFraction * 12))); // Start at 70% and ramp up
     }
+    
+    // Add smooth transition at the end of parental leave
+    const monthsBeforeLeaveEnd = paternalLeaveDuration - childAge;
+    if (monthsBeforeLeaveEnd <= 0.25) { // Last 3 months of leave
+      let activeHours = baseActiveHours[ageGroup];
+      if (!isDaycare && parentType !== ParentType.StayAtHome) {
+        const availableHours = getAvailableHours(parentType, allChildAges);
+        activeHours = Math.min(activeHours, availableHours - ESSENTIAL_PARENT_HOURS);
+      }
+      const transitionProgress = (0.25 - monthsBeforeLeaveEnd) / 0.25; // 0 to 1 over last 3 months
+      return maxHours * (1 - transitionProgress) + activeHours * transitionProgress;
+    }
+    
+    return maxHours;
   }
 
-  // For other cases (school-age children, etc.)
-  const baseActiveHours: { [key in ChildAgeGroup]: number } = {
-    [ChildAgeGroup.NotBornYet]: 0,
-    [ChildAgeGroup.Infancy]: Math.min(childWakeHours, 12),
-    [ChildAgeGroup.Toddler]: Math.min(childWakeHours, 10),
-    [ChildAgeGroup.EarlyChildhood]: 6,
-    [ChildAgeGroup.MiddleChildhood]: 4,
-    [ChildAgeGroup.Adolescence]: 3,
-    [ChildAgeGroup.Adulthood]: 1,
-  };
+  let activeHours = baseActiveHours[ageGroup];
 
-  let activeHours = Math.min(baseActiveHours[ageGroup], getAvailableHours(parentType) - ESSENTIAL_PARENT_HOURS);
+  // Smooth transition between age groups
+  if (ageGroup === ChildAgeGroup.Infancy && childAge > 0.75) {
+    // Start transitioning to toddler hours in last quarter of infancy
+    const transitionProgress = (childAge - 0.75) * 4; // 0 to 1 over last quarter
+    activeHours = baseActiveHours[ChildAgeGroup.Infancy] * (1 - transitionProgress) +
+                 baseActiveHours[ChildAgeGroup.Toddler] * transitionProgress;
+  }
 
-  // Apply multiple children reduction with more nuanced approach
+  // First adjust for daycare (applies to all parent types)
+  if (!isParentalLeave && isDaycare) {
+    // Base daycare hours (before work adjustment)
+    const daycareBaseHours: { [key in ChildAgeGroup]: number } = {
+      [ChildAgeGroup.NotBornYet]: 0,
+      [ChildAgeGroup.Infancy]: 7,    // More hours for stay-at-home parents
+      [ChildAgeGroup.Toddler]: 6,    // Slightly less for toddlers
+      [ChildAgeGroup.EarlyChildhood]: 5,
+      [ChildAgeGroup.MiddleChildhood]: 4,
+      [ChildAgeGroup.Adolescence]: 3,
+      [ChildAgeGroup.Adulthood]: 2,
+    };
+
+    activeHours = daycareBaseHours[ageGroup];
+
+    // Further reduce hours for working parents
+    if (parentType !== ParentType.StayAtHome) {
+      switch (ageGroup) {
+        case ChildAgeGroup.Infancy:
+          activeHours = 5;  // Morning routine + evening routine
+          break;
+        case ChildAgeGroup.Toddler:
+          activeHours = 4.5;  // Slightly shorter routines
+          break;
+        default:
+          activeHours = 4;  // Standard morning/evening pattern
+      }
+    }
+  } else if (!isParentalLeave && parentType !== ParentType.StayAtHome) {
+    // Not in daycare but parent works - limited by available hours
+    const availableHours = getAvailableHours(parentType, allChildAges);
+    activeHours = Math.min(activeHours, availableHours - ESSENTIAL_PARENT_HOURS);
+  }
+
+  // Apply multiple children reduction
   if (childIndex > 0) {
-    // Less reduction for infants/toddlers as they need more individual attention
     const reductionFactor = ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler
       ? 0.2  // 20% reduction per additional young child
       : 0.3; // 30% reduction per additional older child
@@ -211,6 +272,58 @@ export const getPassiveHoursPerChild = (childAge: number): number => {
   }
 };
 
+// Get active hours per child for weekends
+const getWeekendActiveHoursPerChild = (
+  childAge: number,
+  parentType: ParentType,
+  isParentalLeave: boolean,
+  isDaycare: boolean,
+  childIndex: number = 0,
+  allChildAges: number[] = []
+): number => {
+  const ageGroup = getChildAgeGroup(childAge);
+  const parentSleepHours = getParentSleepHours(allChildAges);
+  
+  // Essential parent activities (eating, hygiene, etc.) - slightly more on weekends
+  const ESSENTIAL_PARENT_HOURS = 2;
+  
+  // Base weekend hours - more time available since no work
+  const baseWeekendHours: { [key in ChildAgeGroup]: number } = {
+    [ChildAgeGroup.NotBornYet]: 0,
+    [ChildAgeGroup.Infancy]: 14,     // Most of wake hours
+    [ChildAgeGroup.Toddler]: 12,     // Slightly less as they need independent play
+    [ChildAgeGroup.EarlyChildhood]: 10,
+    [ChildAgeGroup.MiddleChildhood]: 8,
+    [ChildAgeGroup.Adolescence]: 6,
+    [ChildAgeGroup.Adulthood]: 3,
+  };
+
+  // During parental leave - similar to weekdays since every day is the same
+  if (isParentalLeave) {
+    return getActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare, childIndex, allChildAges);
+  }
+
+  let activeHours = baseWeekendHours[ageGroup];
+
+  // Cap at available wake hours
+  const maxPossibleHours = HOURS_IN_DAY - parentSleepHours - ESSENTIAL_PARENT_HOURS;
+  activeHours = Math.min(activeHours, maxPossibleHours);
+
+  // Daycare doesn't affect weekend hours
+  
+  // Apply multiple children reduction
+  if (childIndex > 0) {
+    const reductionFactor = ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler
+      ? 0.2  // 20% reduction per additional young child
+      : 0.3; // 30% reduction per additional older child
+    
+    const multiChildMultiplier = Math.max(0.4, 1 - (childIndex * reductionFactor));
+    activeHours *= multiChildMultiplier;
+  }
+
+  return parseFloat(activeHours.toFixed(2));
+};
+
 // Calculate time spent with children
 export const calculateTimeSpent = (
   _parentBirthYear: number,
@@ -221,9 +334,10 @@ export const calculateTimeSpent = (
   const data: TimeSpent[] = [];
 
   // Find the range of years to display
-  const firstChildBirthYear = Math.min(...children.map(c => c.birthYear));
-  const lastChildBirthYear = Math.max(...children.map(c => c.birthYear));
-  const startYear = firstChildBirthYear - 2;
+  const firstChildBirthYear = Math.min(...children.map(c => Math.floor(c.birthYear)));
+  const lastChildBirthYear = Math.max(...children.map(c => Math.floor(c.birthYear)));
+
+  const startYear = firstChildBirthYear - 1; // Start one year before first child
   const endYear = lastChildBirthYear + 20;
 
   for (let year = startYear; year <= endYear; year++) {
@@ -232,21 +346,42 @@ export const calculateTimeSpent = (
     let maxSingleChildWeekday = 0;
     let maxSingleChildWeekend = 0;
 
+    // Calculate child ages for this year
+    const childAges = children.map(child => {
+      const birthYear = Math.floor(child.birthYear);
+      return year - birthYear;
+    });
+
+    // Check if all children are not born yet
+    const allChildrenNotBornYet = childAges.every(age => age < 0);
+    
+    if (allChildrenNotBornYet) {
+      // Before any children are born, set hours to 0
+      data.push({
+        year,
+        weekdayHours: "0",
+        weekendHours: "0"
+      });
+      continue;
+    }
+
     // Calculate hours for each child
     children.forEach((child, index) => {
-      const childAge = year - child.birthYear;
+      const birthYear = Math.floor(child.birthYear);
+      const childAge = year - birthYear;
+      
       if (childAge < 0) return;
 
       // Check if child is in daycare for this year
       const isDaycare = child.daycareUsed &&
         childAge >= (child.daycareStartAge ?? DAYCARE_DEFAULT_START_AGE) &&
-        childAge <= (child.daycareEndAge ?? DAYCARE_DEFAULT_END_AGE);
+        childAge < (child.daycareEndAge ?? DAYCARE_DEFAULT_END_AGE);
 
       // Check if parent is on parental leave for this child
       const isParentalLeave = childAge >= 0 && childAge < paternalLeaveDuration;
 
       // Calculate base hours for this child
-      const baseHours = getActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare);
+      const baseHours = getActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare, index, childAges, paternalLeaveDuration);
       const passiveHours = getPassiveHoursPerChild(childAge);
 
       // For weekdays (reduced by work)
@@ -254,7 +389,7 @@ export const calculateTimeSpent = (
       maxSingleChildWeekday = Math.max(maxSingleChildWeekday, weekdayHours);
       
       // For weekends (full attention possible)
-      const weekendHours = Math.min(baseHours * 1.2, HOURS_IN_DAY - PARENT_SLEEP_HOURS) + (passiveHours * 0.3);
+      const weekendHours = getWeekendActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare, index, childAges) + passiveHours;
       maxSingleChildWeekend = Math.max(maxSingleChildWeekend, weekendHours);
 
       // Add additional hours for overlapping time, but with diminishing returns
