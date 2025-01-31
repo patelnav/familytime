@@ -5,7 +5,15 @@
   <p><em>Visualizing the precious moments spent with your children</em></p>
 </div>
 
-A tool that visualizes the time parents spend with their children throughout their parenting journey. The algorithm takes into account various real-world factors to provide a realistic estimation of daily active and passive time spent with children.
+A tool that visualizes the time parents spend with their children throughout their parenting journey. The algorithm takes into account various real-world factors to provide a realistic estimation of daily hours spent with children, showing both weekday and weekend patterns on a yearly basis.
+
+## Features
+
+- **Yearly Timeline**: Shows time spent with children from one year before first child's birth through 20 years after last child's birth
+- **Weekday/Weekend Split**: Separate calculations for weekday and weekend hours to reflect different schedules
+- **Multiple Children**: Accounts for overlapping time and shared activities with multiple children
+- **Work Pattern Support**: Accommodates various work arrangements from stay-at-home to flexible schedules
+- **Shareable Results**: Results can be shared via URL, preserving all input data
 
 ## Branding
 
@@ -20,7 +28,7 @@ The algorithm considers several key factors that influence the time spent with c
 #### Parent Variables
 - **Work Hours**: Varies by parent type
   - Stay at Home: 0 hours
-  - Full Time Work: 9 hours (including lunch)
+  - Full Time Work: 9 hours (including 1 hour lunch)
   - Part Time Work: 5 hours
   - Remote Full Time: 8 hours
   - Remote Part Time: 4 hours
@@ -31,12 +39,17 @@ The algorithm considers several key factors that influence the time spent with c
   - Part Time Work: 1.5 hours
   - Remote Work: 0 hours
   - Flexible: 0.5 hours
-- **Parental Leave**: Configurable duration (default: 1 year)
+- **Parent Sleep Hours**: Adjusts based on youngest child's age
+  - Newborn (0): 6 hours
+  - Age 1: 6.5 hours
+  - Age 2: 7 hours
+  - Age 3: 7.5 hours
+  - Age 4+: 8 hours
 - **Essential Activities**: 1.5 hours daily for basic needs
 
 #### Child Variables
 - **Age-Based Sleep Needs**:
-  - Newborn: 16 hours
+  - Newborn (0): 16 hours
   - Age 1: 14 hours
   - Ages 2-4: 12 hours
   - Ages 5-6: 11 hours
@@ -46,11 +59,11 @@ The algorithm considers several key factors that influence the time spent with c
 
 #### Developmental Stages
 - **Infancy** (0-1 years)
-- **Toddler** (2-4 years)
-- **Early Childhood** (5-7 years)
-- **Middle Childhood** (8-12 years)
-- **Adolescence** (13-17 years)
-- **Adulthood** (18+ years)
+- **Toddler** (1-4 years)
+- **Early Childhood** (4-7 years)
+- **Middle Childhood** (7-12 years)
+- **Adolescence** (12-17 years)
+- **Adulthood** (17+ years)
 
 #### Schooling Stages
 - **PreSchool** (≤3 years)
@@ -62,50 +75,47 @@ The algorithm considers several key factors that influence the time spent with c
 
 ### Time Categories
 
-The algorithm calculates two types of time:
+The algorithm calculates active interaction time based on several factors:
 
-1. **Active Hours**: Direct interaction and focused attention
-   - **During Parental Leave**: Maximum child wake hours minus essential activities
-   - **Infants/Toddlers without Daycare**: All available parent hours minus essential activities
-   - **With Daycare**:
-     - Infants: 5-6 hours (morning/evening routines)
-     - Toddlers: 4-5 hours
-     - Older Children: 3-4 hours
-   - **Base Active Hours by Age Group**:
-     - Infancy: Up to 12 hours
-     - Toddler: Up to 10 hours
-     - Early Childhood: 6 hours
-     - Middle Childhood: 4 hours
-     - Adolescence: 3 hours
-     - Adulthood: 1 hour
+#### Base Active Hours by Age Group
+- **Infancy**: 12 hours
+- **Toddler**: 11 hours
+- **Early Childhood**: 8 hours
+- **Middle Childhood**: 6 hours
+- **Adolescence**: 4 hours
+- **Adulthood**: 2 hours
 
-2. **Weekend Hours**: Based on schooling stage
-   - PreSchool: 6 hours
-   - Kindergarten: 5 hours
-   - Elementary: 4 hours
-   - Middle School: 3 hours
-   - High School: 2.5 hours
-   - Post High School: 1 hour
+#### Parental Leave Period
+- Based on child's wake hours and parent's available time
+- Gradual ramp-up during first month
+- Smooth transition back to regular schedule in final months
+
+#### Daycare Adjustments
+When daycare is used:
+- **Stay-at-home Parents**:
+  - Infancy: 7 hours
+  - Toddler: 6 hours
+  - Early Childhood: 5 hours
+  - Middle Childhood: 4 hours
+  - Adolescence: 3 hours
+  - Adulthood: 2 hours
+- **Working Parents**:
+  - Infancy: 5 hours (morning + evening routines)
+  - Toddler: 4.5 hours
+  - Other ages: 4 hours
 
 ### Multiple Children Adjustments
 
-1. **Weekday Time**:
-   - First child receives full calculated hours
-   - Additional young children (infants/toddlers): 30% more time each
-   - Additional older children: 20% more time each
-   - Minimum multiplier: 0.4 (ensures minimum attention)
+For each additional child:
+- Young children (infants/toddlers): 20% reduction in individual time
+- Older children: 30% reduction in individual time
+- Minimum multiplier: 0.4 (ensures minimum attention)
 
-2. **Weekend Time**:
-   - First child sets base weekend hours
-   - Each additional child adds 25% more time
-   - Accounts for shared activities
+### Age Transitions
 
-### Passive Time Calculation
+The algorithm includes smooth transitions:
+- Between parental leave and regular schedule
+- Between age groups (e.g., infancy to toddler)
+- Adjusts for first month after birth
 
-- **Infancy**: Up to 30% of sleep time (max 6 hours)
-- **Toddler**: Up to 20% of sleep time (max 3 hours)
-- **Early Childhood**: 1.5 hours
-- **Middle Childhood**: 1 hour
-- **Adolescence**: 0.5 hours
-
-The visualization shows both weekday and weekend hours over time, with ranges to account for variability in daily schedules. The timeline spans from 2 years before the first child's birth through 20 years after the last child's birth, providing a comprehensive view of the parenting journey. 
+The visualization shows how these factors combine to create a realistic picture of parenting time throughout the years, accounting for both regular patterns and major transitions in children's lives. 
