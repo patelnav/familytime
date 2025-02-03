@@ -43,6 +43,7 @@ const stageColors = Object.fromEntries(
   Object.values(ChildAgeGroup).map(stage => [stage, getStageColor(stage)])
 );
 
+// Register the annotation plugin
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -50,7 +51,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 interface VisualizationSectionProps {
@@ -97,16 +98,16 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
       {
         label: 'Weekday Hours',
         data: timeData.map(d => parseFloat(d.weekdayHours)),
-        borderColor: '#7DDBC9',
-        backgroundColor: 'rgba(125, 219, 201, 0.5)',
+        borderColor: '#4FD1C5',
+        backgroundColor: 'rgba(79, 209, 197, 0.5)',
         tension: 0.4,
         yAxisID: 'y',
       },
       {
         label: 'Weekend Hours',
         data: timeData.map(d => parseFloat(d.weekendHours)),
-        borderColor: '#65C9B5',
-        backgroundColor: 'rgba(101, 201, 181, 0.5)',
+        borderColor: '#805AD5',
+        backgroundColor: 'rgba(128, 90, 213, 0.5)',
         tension: 0.4,
         yAxisID: 'y',
       }
@@ -139,36 +140,37 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           label(context) {
             const dataIndex = context.dataIndex;
             const datasetLabel = context.dataset.label || '';
-            const year = timeData[dataIndex].year;
-            
-            // Calculate child ages for this point and only include born children
-            const childAges = familyData.children
-              .filter(child => {
-                const birthYear = parseInt(child.birthYear);
-                return !isNaN(birthYear) && birthYear > 1900 && birthYear <= new Date().getFullYear() + 1;
-              })
-              .map(child => {
-                const birthYear = Math.floor(parseInt(child.birthYear));
-                const ageInYears = year - birthYear;
-                
-                if (ageInYears < 0) return null;
+            return datasetLabel === 'Weekday Hours' 
+              ? `Weekdays: ${timeData[dataIndex].weekdayHours}`
+              : `Weekends: ${timeData[dataIndex].weekendHours}`;
+          },
+          afterLabel(context) {
+            // Only show child ages after the last dataset's label
+            if (context.datasetIndex === context.chart.data.datasets.length - 1) {
+              const dataIndex = context.dataIndex;
+              const year = timeData[dataIndex].year;
+              
+              const childAges = familyData.children
+                .filter(child => {
+                  const birthYear = parseInt(child.birthYear);
+                  return !isNaN(birthYear) && birthYear > 1900 && birthYear <= new Date().getFullYear() + 1;
+                })
+                .map(child => {
+                  const birthYear = Math.floor(parseInt(child.birthYear));
+                  const ageInYears = year - birthYear;
+                  
+                  if (ageInYears < 0) return null;
+                  return {
+                    name: child.name || `Child ${familyData.children.indexOf(child) + 1}`,
+                    ageStr: `${ageInYears}y`
+                  };
+                })
+                .filter((child): child is NonNullable<typeof child> => child !== null)
+                .map(child => `${child.name}: ${child.ageStr}`);
 
-                return {
-                  name: child.name || `Child ${familyData.children.indexOf(child) + 1}`,
-                  ageStr: `${ageInYears}y`
-                };
-              })
-              .filter((child): child is NonNullable<typeof child> => child !== null)
-              .map(child => `${child.name}: ${child.ageStr}`);
-
-            const childAgesStr = childAges.length > 0 ? childAges.join(', ') : 'No children born yet';
-            
-            if (datasetLabel === 'Weekday Hours') {
-              return [`Weekdays: ${timeData[dataIndex].weekdayHours}`, childAgesStr];
-            } else if (datasetLabel === 'Weekend Hours') {
-              return [`Weekends: ${timeData[dataIndex].weekendHours}`, childAgesStr];
+              return childAges.length > 0 ? childAges.join(', ') : 'No children born yet';
             }
-            return '';
+            return '';  // Return empty string instead of null
           }
         },
       },
@@ -208,9 +210,6 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
     if (timeData.length === 0) return null;
 
     const years = timeData.map(d => d.year);
-    const minYear = Math.min(...years);
-    const maxYear = Math.max(...years);
-    const totalWidth = maxYear - minYear;
 
     return (
       <div className="mb-4 space-y-2">
