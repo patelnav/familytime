@@ -27,6 +27,16 @@ describe('Time Calculations - Core Functionality', () => {
     expect(parseFloat(postChildYear?.weekendHours || "0")).toBeGreaterThan(0);
   });
 
+  test('returns zero hours when child reaches 18', () => {
+    const result = calculateTimeSpent(1990, [
+      { birthYear: 2000, daycareUsed: false }
+    ], ParentType.FullTimeWork);
+
+    const adultYear = result.find(d => d.year === 2018);
+    expect(parseFloat(adultYear?.weekdayHours || "1")).toBe(0);
+    expect(parseFloat(adultYear?.weekendHours || "1")).toBe(0);
+  });
+
   test('weekend hours are generally higher than weekday hours for working parents', () => {
     const result = calculateTimeSpent(1990, [
       { birthYear: 2020, daycareUsed: false }

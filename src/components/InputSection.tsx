@@ -235,7 +235,7 @@ const InputSection: React.FC<InputSectionProps> = ({ familyData, setFamilyData }
                       value={child.daycareStartAge}
                       onChange={(e) => handleChildChange(index, 'daycareStartAge', e.target.value)}
                       className="mt-1 block w-full rounded-md border-gray-300 focus:border-slate-500 focus:ring-slate-500 sm:text-sm"
-                      min="0"
+                      min="1"
                       max="5"
                       step="0.5"
                     />

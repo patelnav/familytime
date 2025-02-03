@@ -2,8 +2,8 @@
 export const HOURS_IN_DAY = 24;
 export const PARENT_SLEEP_HOURS_DEFAULT = 8;
 export const PATERNAL_LEAVE_DURATION_DEFAULT = 1;
-export const DAYCARE_DEFAULT_START_AGE = 1;
-export const DAYCARE_DEFAULT_END_AGE = 5;
+export const DAYCARE_DEFAULT_START_AGE = 1;  // Minimum daycare start age
+export const DAYCARE_DEFAULT_END_AGE = 6;    // End daycare at start of elementary school
 
 // Parent sleep hours based on youngest child's age
 export const PARENT_SLEEP_HOURS: { [age: number]: number } = {
@@ -94,22 +94,22 @@ export interface TimeSpent {
 // Function to determine the age group of a child
 export const getChildAgeGroup = (childAge: number): ChildAgeGroup => {
   if (childAge < 0) return ChildAgeGroup.NotBornYet;
-  if (childAge < 1) return ChildAgeGroup.Infancy;
-  if (childAge < 4) return ChildAgeGroup.Toddler;
-  if (childAge < 7) return ChildAgeGroup.EarlyChildhood;
-  if (childAge < 12) return ChildAgeGroup.MiddleChildhood;
-  if (childAge < 17) return ChildAgeGroup.Adolescence;
-  return ChildAgeGroup.Adulthood;
+  if (childAge < 1) return ChildAgeGroup.Infancy;       // 0–1
+  if (childAge < 3) return ChildAgeGroup.Toddler;       // 1–3
+  if (childAge < 6) return ChildAgeGroup.EarlyChildhood; // 3–6 (preschool)
+  if (childAge < 12) return ChildAgeGroup.MiddleChildhood; // 6–12
+  if (childAge < 18) return ChildAgeGroup.Adolescence;    // 12-18
+  return ChildAgeGroup.Adulthood;                         // 18+
 };
 
 // Function to determine the schooling stage
 export const getSchoolingStage = (childAge: number): SchoolingStage => {
-  if (childAge <= 3) return SchoolingStage.PreSchool;
-  if (childAge <= 5) return SchoolingStage.Kindergarten;
-  if (childAge <= 11) return SchoolingStage.Elementary;
-  if (childAge <= 14) return SchoolingStage.MiddleSchool;
-  if (childAge <= 17) return SchoolingStage.HighSchool;
-  return SchoolingStage.PostHighSchool;
+  if (childAge < 3) return SchoolingStage.PreSchool;      // 0-3: Pre-preschool/daycare
+  if (childAge < 6) return SchoolingStage.Kindergarten;   // 3-6: Preschool/kindergarten
+  if (childAge < 12) return SchoolingStage.Elementary;    // 6-12: Elementary school
+  if (childAge < 15) return SchoolingStage.MiddleSchool;  // 12-15: Middle school
+  if (childAge < 18) return SchoolingStage.HighSchool;    // 15-18: High school
+  return SchoolingStage.PostHighSchool;                   // 18+: Post high school
 };
 
 // Add these constants at the top
@@ -145,7 +145,7 @@ export const baseActiveHours: { [key in ChildAgeGroup]: number } = {
   [ChildAgeGroup.EarlyChildhood]: 8,
   [ChildAgeGroup.MiddleChildhood]: 6,
   [ChildAgeGroup.Adolescence]: 4,
-  [ChildAgeGroup.Adulthood]: 2,
+  [ChildAgeGroup.Adulthood]: 0,    // Adult children (18+)
 };
 
 // Get active hours per child
@@ -209,9 +209,9 @@ export const getActiveHoursPerChild = (
       [ChildAgeGroup.Infancy]: 7,    // More hours for stay-at-home parents
       [ChildAgeGroup.Toddler]: 6,    // Slightly less for toddlers
       [ChildAgeGroup.EarlyChildhood]: 5,
-      [ChildAgeGroup.MiddleChildhood]: 4,
-      [ChildAgeGroup.Adolescence]: 3,
-      [ChildAgeGroup.Adulthood]: 2,
+      [ChildAgeGroup.MiddleChildhood]: 0,  // No daycare after early childhood
+      [ChildAgeGroup.Adolescence]: 0,
+      [ChildAgeGroup.Adulthood]: 0,
     };
 
     activeHours = daycareBaseHours[ageGroup];
@@ -225,8 +225,11 @@ export const getActiveHoursPerChild = (
         case ChildAgeGroup.Toddler:
           activeHours = 4.5;  // Slightly shorter routines
           break;
-        default:
+        case ChildAgeGroup.EarlyChildhood:
           activeHours = 4;  // Standard morning/evening pattern
+          break;
+        default:
+          activeHours = 0;  // No daycare hours after early childhood
       }
     }
   } else if (!isParentalLeave && parentType !== ParentType.StayAtHome) {
@@ -295,7 +298,7 @@ const getWeekendActiveHoursPerChild = (
     [ChildAgeGroup.EarlyChildhood]: 10,
     [ChildAgeGroup.MiddleChildhood]: 8,
     [ChildAgeGroup.Adolescence]: 6,
-    [ChildAgeGroup.Adulthood]: 3,
+    [ChildAgeGroup.Adulthood]: 0,
   };
 
   // During parental leave - similar to weekdays since every day is the same
@@ -337,14 +340,12 @@ export const calculateTimeSpent = (
   const firstChildBirthYear = Math.min(...children.map(c => Math.floor(c.birthYear)));
   const lastChildBirthYear = Math.max(...children.map(c => Math.floor(c.birthYear)));
 
-  const startYear = firstChildBirthYear - 1; // Start one year before first child
+  const startYear = firstChildBirthYear - 2; // Start two years before first child
   const endYear = lastChildBirthYear + 20;
 
   for (let year = startYear; year <= endYear; year++) {
     let totalWeekdayHours = 0;
     let totalWeekendHours = 0;
-    let maxSingleChildWeekday = 0;
-    let maxSingleChildWeekend = 0;
 
     // Calculate child ages for this year
     const childAges = children.map(child => {
@@ -386,11 +387,9 @@ export const calculateTimeSpent = (
 
       // For weekdays (reduced by work)
       const weekdayHours = baseHours + (passiveHours * 0.7);
-      maxSingleChildWeekday = Math.max(maxSingleChildWeekday, weekdayHours);
       
       // For weekends (full attention possible)
       const weekendHours = getWeekendActiveHoursPerChild(childAge, parentType, isParentalLeave, isDaycare, index, childAges) + passiveHours;
-      maxSingleChildWeekend = Math.max(maxSingleChildWeekend, weekendHours);
 
       // Add additional hours for overlapping time, but with diminishing returns
       if (index > 0) {

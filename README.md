@@ -9,7 +9,7 @@ A tool that visualizes the time parents spend with their children throughout the
 
 ## Features
 
-- **Yearly Timeline**: Shows time spent with children from one year before first child's birth through 20 years after last child's birth
+- **Yearly Timeline**: Shows time spent with children from two years before first child's birth through 20 years after last child's birth
 - **Weekday/Weekend Split**: Separate calculations for weekday and weekend hours to reflect different schedules
 - **Multiple Children**: Accounts for overlapping time and shared activities with multiple children
 - **Work Pattern Support**: Accommodates various work arrangements from stay-at-home to flexible schedules
@@ -45,7 +45,7 @@ The algorithm considers several key factors that influence the time spent with c
   - Age 2: 7 hours
   - Age 3: 7.5 hours
   - Age 4+: 8 hours
-- **Essential Activities**: 1.5 hours daily for basic needs
+- **Essential Activities**: 1.5 hours daily for basic needs (2 hours on weekends)
 
 #### Child Variables
 - **Age-Based Sleep Needs**:
@@ -58,20 +58,20 @@ The algorithm considers several key factors that influence the time spent with c
   - Age 18+: 8 hours
 
 #### Developmental Stages
-- **Infancy** (0-1 years)
-- **Toddler** (1-4 years)
-- **Early Childhood** (4-7 years)
-- **Middle Childhood** (7-12 years)
-- **Adolescence** (12-17 years)
-- **Adulthood** (17+ years)
+- **Infancy** (0-1 years): Newborns and young babies
+- **Toddler** (1-3 years): Early walking and talking phase
+- **Early Childhood** (3-6 years): Preschool and kindergarten years
+- **Middle Childhood** (6-12 years): Elementary school years
+- **Adolescence** (12-18 years): Teen years through high school
+- **Adulthood** (18+ years): Young adults
 
 #### Schooling Stages
-- **PreSchool** (≤3 years)
-- **Kindergarten** (4-5 years)
-- **Elementary** (6-11 years)
-- **Middle School** (12-14 years)
-- **High School** (15-17 years)
-- **Post High School** (18+ years)
+- **PreSchool** (0-3 years): Pre-preschool and daycare age
+- **Kindergarten** (3-6 years): Preschool and kindergarten
+- **Elementary** (6-12 years): Elementary school years
+- **Middle School** (12-15 years): Middle school/junior high
+- **High School** (15-18 years): High school years
+- **Post High School** (18+ years): College and beyond
 
 ### Time Categories
 
@@ -83,7 +83,7 @@ The algorithm calculates active interaction time based on several factors:
 - **Early Childhood**: 8 hours
 - **Middle Childhood**: 6 hours
 - **Adolescence**: 4 hours
-- **Adulthood**: 2 hours
+- **Adulthood**: 0 hours (18+ years)
 
 #### Parental Leave Period
 - Based on child's wake hours and parent's available time
@@ -91,18 +91,15 @@ The algorithm calculates active interaction time based on several factors:
 - Smooth transition back to regular schedule in final months
 
 #### Daycare Adjustments
-When daycare is used:
+When daycare is used (ages 1-6):
 - **Stay-at-home Parents**:
   - Infancy: 7 hours
   - Toddler: 6 hours
   - Early Childhood: 5 hours
-  - Middle Childhood: 4 hours
-  - Adolescence: 3 hours
-  - Adulthood: 2 hours
 - **Working Parents**:
   - Infancy: 5 hours (morning + evening routines)
   - Toddler: 4.5 hours
-  - Other ages: 4 hours
+  - Early Childhood: 4 hours
 
 ### Multiple Children Adjustments
 
