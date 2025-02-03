@@ -140,9 +140,10 @@ const VisualizationSection: React.FC<VisualizationSectionProps> = ({ familyData 
           label(context) {
             const dataIndex = context.dataIndex;
             const datasetLabel = context.dataset.label || '';
+            const hours = Math.round(parseFloat(timeData[dataIndex][datasetLabel === 'Weekday Hours' ? 'weekdayHours' : 'weekendHours']));
             return datasetLabel === 'Weekday Hours' 
-              ? `Weekdays: ${timeData[dataIndex].weekdayHours}`
-              : `Weekends: ${timeData[dataIndex].weekendHours}`;
+              ? `Weekdays: ${hours}`
+              : `Weekends: ${hours}`;
           },
           afterLabel(context) {
             // Only show child ages after the last dataset's label
