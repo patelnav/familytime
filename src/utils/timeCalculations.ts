@@ -241,11 +241,11 @@ export const getActiveHoursPerChild = (
   // Apply multiple children reduction
   if (childIndex > 0) {
     const reductionFactor = ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler
-      ? 0.2  // 20% reduction per additional young child
-      : 0.3; // 30% reduction per additional older child
+      ? 0.4  // 40% reduction per additional young child
+      : 0.5; // 50% reduction per additional older child
     
-    const multiChildMultiplier = Math.max(0.4, 1 - (childIndex * reductionFactor));
-    activeHours *= multiChildMultiplier;
+    const multiChildMultiplier = 1 - (childIndex * reductionFactor);
+    activeHours *= Math.max(0, multiChildMultiplier); // Only prevent negative hours
   }
 
   return parseFloat(activeHours.toFixed(2));
@@ -317,11 +317,11 @@ const getWeekendActiveHoursPerChild = (
   // Apply multiple children reduction
   if (childIndex > 0) {
     const reductionFactor = ageGroup === ChildAgeGroup.Infancy || ageGroup === ChildAgeGroup.Toddler
-      ? 0.2  // 20% reduction per additional young child
-      : 0.3; // 30% reduction per additional older child
+      ? 0.4  // 40% reduction per additional young child
+      : 0.5; // 50% reduction per additional older child
     
-    const multiChildMultiplier = Math.max(0.4, 1 - (childIndex * reductionFactor));
-    activeHours *= multiChildMultiplier;
+    const multiChildMultiplier = 1 - (childIndex * reductionFactor);
+    activeHours *= Math.max(0, multiChildMultiplier); // Only prevent negative hours
   }
 
   return parseFloat(activeHours.toFixed(2));

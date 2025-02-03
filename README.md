@@ -104,9 +104,19 @@ When daycare is used (ages 1-6):
 ### Multiple Children Adjustments
 
 For each additional child:
-- Young children (infants/toddlers): 20% reduction in individual time
-- Older children: 30% reduction in individual time
-- Minimum multiplier: 0.4 (ensures minimum attention)
+- Young children (infants/toddlers): 40% reduction in individual time
+- Older children: 50% reduction in individual time
+- No minimum cap (reductions can go up to 100%)
+
+Examples:
+- Second child gets 60% (infants) or 50% (older) of base hours
+- Third child gets 20% (infants) or 0% (older) of base hours
+- Fourth+ children effectively get 0 hours due to 100%+ reduction
+
+This models the reality that:
+- Each additional child significantly reduces individual attention time
+- Younger children maintain more individual time than older ones
+- Beyond three children, direct individual time becomes minimal
 
 ### Age Transitions
 
